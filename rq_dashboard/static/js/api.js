@@ -23,8 +23,8 @@ define(['jquery'], function($) {
 
     return {
         'getQueues': getQueues,
-        'getJobs': getJobs,
-        'getWorkers': getWorkers
+            'getJobs': getJobs,
+            'getWorkers': getWorkers
     };
 
 });

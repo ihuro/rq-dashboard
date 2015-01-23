@@ -1,31 +1,21 @@
 /* @override http://localhost:9181/static/css/main.css */
 
-body {
-    background-color: black;
-}
-
-.container {
-    background: white;
-    margin-top: 3em;
-}
-
 #content {
     background: yellow;
 }
 
-.section
-{
-    padding: 2em;
+.section {
+    padding: 0em 2em;
 }
 
 p.intro {
-    min-height: 2em;
-    padding-top: .8em;
     color: #888;
+    padding: .5em 0em;
+    min-height: 2em;
 }
 
 p.fixed.intro {
-    height: 5em;
+    height: 4em;
 }
 
 h1 {
@@ -48,12 +38,25 @@ table, table tr, table tr td {
     background-color: snow;
 }
 
+table tbody tr td {
+    vertical-align: middle;
+}
+
 table tbody tr td.narrow {
     width: 100px;
 }
 
-table#queues {
-    /*width: 300px;*/
+table tr.failed {
+    color: red;
+    border-top: 2px solid red;
+}
+
+table tr.failed a {
+    color: red;
+}
+
+table tr.failed td {
+    background-color: lightgoldenrodyellow;
 }
 
 table#jobs td.actions a {
@@ -93,28 +96,18 @@ table#jobs span.end_date {
     margin-left: 24px;
 }
 
-table#workers {
-    /*width: 600px;*/
+a#compact-btn, a#requeue-all-btn{
+    float: right;
+    margin-right: 10px;
+    margin-bottom:10px;
 }
 
-table tbody tr td {
-    vertical-align: middle;
-}
-
-table tr.failed {
-    color: red;
-    border-top: 2px solid red;
-}
-
-table tr.failed a {
-    color: red;
-}
-
-table tr.failed td {
-    background-color: lightgoldenrodyellow;
+#empty-btn {
+    float: right;
 }
 
 span.loading {
     font-size: .8em;
     color: #555;
 }
+

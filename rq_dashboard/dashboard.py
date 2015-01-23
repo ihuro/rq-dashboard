@@ -1,21 +1,21 @@
+import times
+from math import ceil
+from functools import wraps
+
 from redis import Redis
 from redis import from_url
-from rq import push_connection, pop_connection
-from functools import wraps
-import times
 from flask import Blueprint
 from flask import current_app, url_for, abort
 from flask import render_template
 from rq import Queue, Worker
-from rq import cancel_job, requeue_job
 from rq import get_failed_queue
-from math import ceil
+from rq import cancel_job, requeue_job
+from rq import push_connection, pop_connection
 
 
 dashboard = Blueprint('rq_dashboard', __name__,
-        template_folder='templates',
-        static_folder='static',
-        )
+                      template_folder='templates',
+                      static_folder='static')
 
 
 @dashboard.before_request
@@ -34,9 +34,9 @@ def setup_rq_connection():
         current_app.redis_conn = from_url(current_app.config.get('REDIS_URL'))
     else:
         current_app.redis_conn = Redis(host=current_app.config.get('REDIS_HOST', 'localhost'),
-                       port=current_app.config.get('REDIS_PORT', 6379),
-                       password=current_app.config.get('REDIS_PASSWORD', None),
-                       db=current_app.config.get('REDIS_DB', 0))
+                                       port=current_app.config.get('REDIS_PORT', 6379),
+                                       password=current_app.config.get('REDIS_PASSWORD', None),
+                                       db=current_app.config.get('REDIS_DB', 0))
 
 
 @dashboard.before_request
@@ -67,7 +67,7 @@ def jsonify(f):
 
 def serialize_queues(queues):
     return [dict(name=q.name, count=q.count, url=url_for('.overview',
-        queue_name=q.name)) for q in queues]
+                                                         queue_name=q.name)) for q in queues]
 
 
 def serialize_date(dt):
@@ -89,14 +89,15 @@ def serialize_job(job):
 
 
 def remove_none_values(input_dict):
-    return dict([ (k,v) for k,v in input_dict.items() if v is not None ])
+    return dict([(k, v) for k, v in input_dict.items() if v is not None])
 
 
 def pagination_window(total_items, cur_page, per_page=5, window_size=10):
     all_pages = range(1, int(ceil(total_items / float(per_page))) + 1)
     results = all_pages
     if (window_size >= 1):
-        pages_window_start = int(max(0, min(len(all_pages) - window_size, (cur_page-1) - ceil(window_size / 2.0))))
+        pages_window_start = int(max(
+            0, min(len(all_pages) - window_size, (cur_page - 1) - ceil(window_size / 2.0))))
         pages_window_end = int(pages_window_start + window_size)
         result = all_pages[pages_window_start:pages_window_end]
     return result
@@ -116,12 +117,12 @@ def overview(queue_name, page):
     else:
         queue = Queue(queue_name)
 
-    return render_template('rq_dashboard/dashboard.html',
-            workers=Worker.all(),
-            queue=queue,
-            page=page,
-            queues=Queue.all(),
-            rq_url_prefix=url_for('.overview'))
+    return render_template('dashboard.html',
+                           workers=Worker.all(),
+                           queue=queue,
+                           page=page,
+                           queues=Queue.all(),
+                           rq_url_prefix=url_for('.overview'))
 
 
 @dashboard.route('/job/<job_id>/cancel', methods=['POST'])
@@ -179,23 +180,26 @@ def list_jobs(queue_name, page):
     queue = Queue(queue_name)
     per_page = 5
     total_items = queue.count
-    pages_numbers_in_window = pagination_window(total_items, current_page, per_page)
-    pages_in_window = [ dict(number=p, url=url_for('.overview',
-        queue_name=queue_name, page=p)) for p in pages_numbers_in_window ]
+    pages_numbers_in_window = pagination_window(
+        total_items, current_page, per_page)
+    pages_in_window = [dict(number=p, url=url_for('.overview',
+                                                  queue_name=queue_name, page=p)) for p in pages_numbers_in_window]
     last_page = int(ceil(total_items / float(per_page)))
 
     prev_page = None
     if current_page > 1:
-        prev_page = dict(url=url_for('.overview', queue_name=queue_name, page=(current_page-1)))
+        prev_page = dict(
+            url=url_for('.overview', queue_name=queue_name, page=(current_page - 1)))
 
     next_page = None
     if current_page < last_page:
-        next_page = dict(url=url_for('.overview', queue_name=queue_name, page=(current_page+1)))
+        next_page = dict(
+            url=url_for('.overview', queue_name=queue_name, page=(current_page + 1)))
 
     pagination = remove_none_values(
         dict(pages_in_window=pages_in_window,
-            next_page=next_page,
-            prev_page=prev_page))
+             next_page=next_page,
+             prev_page=prev_page))
 
     offset = (current_page - 1) * per_page
     jobs = [serialize_job(job) for job in queue.get_jobs(offset, per_page)]
@@ -209,8 +213,9 @@ def list_workers():
         return [q.name for q in worker.queues]
 
     workers = [dict(name=worker.name, queues=serialize_queue_names(worker),
-        state=worker.get_state()) for worker in Worker.all()]
+                    state=worker.get_state()) for worker in Worker.all()]
     return dict(workers=workers)
+
 
 @dashboard.context_processor
 def inject_interval():
