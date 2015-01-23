@@ -61,7 +61,7 @@
 
         <script name="worker-row" type="text/template">
             <tr data-role="worker">
-                <td><i class="icon-<%= d.state %>"></i></td>
+                <td><span class="glyphicon glyphicon-<%= d.state %>"></span></td>
                 <td><%= d.name %></td>
                 <td><%= d.queues.join(', ') %></td>
             </tr>
