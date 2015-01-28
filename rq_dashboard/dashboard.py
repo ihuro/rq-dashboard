@@ -5,17 +5,18 @@ from functools import wraps
 from redis import Redis
 from redis import from_url
 from flask import Blueprint
-from flask import current_app, url_for, abort
 from flask import render_template
+from flask import current_app, url_for, request, Response
 from rq import Queue, Worker
 from rq import get_failed_queue
 from rq import cancel_job, requeue_job
 from rq import push_connection, pop_connection
 
 
-dashboard = Blueprint('rq_dashboard', __name__,
-                      template_folder='templates',
-                      static_folder='static')
+dashboard = Blueprint('rq_dashboard',
+                      __name__,
+                      static_folder='static',
+                      template_folder='templates')
 
 
 @dashboard.before_request
@@ -24,19 +25,24 @@ def authentication_hook():
         with it's own auth_handler method that must return True or False
     """
     auth_handler = current_app.extensions['rq-dashboard'].auth_handler
-    if auth_handler and not auth_handler():
-        abort(401)
+    if 'AUTH_USER' in current_app.config and 'AUTH_PASS' in current_app.config:
+        auth = request.authorization
+        if not auth or not auth_handler(auth.username, auth.password):
+            return Response('The username or password is Wrong! Please contact your adminstrator',  # noqa
+                            401,
+                            {'WWW-Authenticate': 'Basic realm="Login Required"'}) # noqa
 
 
 @dashboard.before_app_first_request
 def setup_rq_connection():
-    if current_app.config.get('REDIS_URL'):
-        current_app.redis_conn = from_url(current_app.config.get('REDIS_URL'))
+    conf_get = current_app.config.get
+    if conf_get('REDIS_URL'):
+        current_app.redis_conn = from_url(conf_get('REDIS_URL'))
     else:
-        current_app.redis_conn = Redis(host=current_app.config.get('REDIS_HOST', 'localhost'),
-                                       port=current_app.config.get('REDIS_PORT', 6379),
-                                       password=current_app.config.get('REDIS_PASSWORD', None),
-                                       db=current_app.config.get('REDIS_DB', 0))
+        current_app.redis_conn = Redis(host=conf_get('REDIS_HOST', 'localhost'),  # noqa
+                                       port=conf_get('REDIS_PORT', 6379),
+                                       password=conf_get('REDIS_PASSWORD', None),  # noqa
+                                       db=conf_get('REDIS_DB', 0))
 
 
 @dashboard.before_request
@@ -66,8 +72,9 @@ def jsonify(f):
 
 
 def serialize_queues(queues):
-    return [dict(name=q.name, count=q.count, url=url_for('.overview',
-                                                         queue_name=q.name)) for q in queues]
+    return [dict(name=q.name,
+                 count=q.count,
+                 url=url_for('.overview', queue_name=q.name)) for q in queues]
 
 
 def serialize_date(dt):
@@ -77,15 +84,14 @@ def serialize_date(dt):
 
 
 def serialize_job(job):
-    return dict(
-        id=job.id,
-        created_at=serialize_date(job.created_at),
-        enqueued_at=serialize_date(job.enqueued_at),
-        ended_at=serialize_date(job.ended_at),
-        origin=job.origin,
-        result=job._result,
-        exc_info=job.exc_info,
-        description=job.description)
+    return dict(id=job.id,
+                created_at=serialize_date(job.created_at),
+                enqueued_at=serialize_date(job.enqueued_at),
+                ended_at=serialize_date(job.ended_at),
+                origin=job.origin,
+                result=job._result,
+                exc_info=job.exc_info,
+                description=job.description)
 
 
 def remove_none_values(input_dict):
@@ -94,10 +100,10 @@ def remove_none_values(input_dict):
 
 def pagination_window(total_items, cur_page, per_page=5, window_size=10):
     all_pages = range(1, int(ceil(total_items / float(per_page))) + 1)
-    results = all_pages
     if (window_size >= 1):
-        pages_window_start = int(max(
-            0, min(len(all_pages) - window_size, (cur_page - 1) - ceil(window_size / 2.0))))
+        pages_window_start = int(max(0, min(len(all_pages) - window_size,
+                                            (cur_page - 1) -
+                                            ceil(window_size / 2.0))))
         pages_window_end = int(pages_window_start + window_size)
         result = all_pages[pages_window_start:pages_window_end]
     return result
@@ -182,19 +188,17 @@ def list_jobs(queue_name, page):
     total_items = queue.count
     pages_numbers_in_window = pagination_window(
         total_items, current_page, per_page)
-    pages_in_window = [dict(number=p, url=url_for('.overview',
-                                                  queue_name=queue_name, page=p)) for p in pages_numbers_in_window]
+    pages_in_window = [dict(number=p,
+                            url=url_for('.overview', queue_name=queue_name, page=p)) for p in pages_numbers_in_window] # noqa
     last_page = int(ceil(total_items / float(per_page)))
 
     prev_page = None
     if current_page > 1:
-        prev_page = dict(
-            url=url_for('.overview', queue_name=queue_name, page=(current_page - 1)))
+        prev_page = dict(url=url_for('.overview', queue_name=queue_name, page=(current_page - 1))) # noqa
 
     next_page = None
     if current_page < last_page:
-        next_page = dict(
-            url=url_for('.overview', queue_name=queue_name, page=(current_page + 1)))
+        next_page = dict(url=url_for('.overview', queue_name=queue_name, page=(current_page + 1))) # noqa
 
     pagination = remove_none_values(
         dict(pages_in_window=pages_in_window,

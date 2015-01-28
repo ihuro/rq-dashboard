@@ -305,15 +305,15 @@ var api = {
         e.stopPropagation();
 
         var $this = $(this),
-            $row = $this.parents('tr'),
-            job_id = $row.data('job-id'),
-            url = url_for('cancel_job', job_id);
+        $row = $this.parents('tr'),
+        job_id = $row.data('job-id'),
+        url = url_for('cancel_job', job_id);
 
-        $.post(url, function(data) {
-            $row.fadeOut('fast', function() { $row.remove(); });
-        });
+    $.post(url, function(data) {
+        $row.fadeOut('fast', function() { $row.remove(); });
+    });
 
-        return false;
+    return false;
     });
 
     // Enable the AJAX behaviour of the requeue button
@@ -322,15 +322,15 @@ var api = {
         e.stopPropagation();
 
         var $this = $(this),
-            $row = $this.parents('tr'),
-            job_id = $row.data('job-id'),
-            url = url_for('requeue_job', job_id);
+        $row = $this.parents('tr'),
+        job_id = $row.data('job-id'),
+        url = url_for('requeue_job', job_id);
 
-        $.post(url, function(data) {
-            $row.fadeOut('fast', function() { $row.remove(); });
-        });
+    $.post(url, function(data) {
+        $row.fadeOut('fast', function() { $row.remove(); });
+    });
 
-        return false;
+    return false;
     });
 
 })($);
