@@ -34,6 +34,20 @@ h1 strong.failed {
     text-shadow: 0 -1px #922;
 }
 
+h2 {
+    font-family: 'Helvetica Neue', helvetica, sans-serif;
+    font-weight: 300;
+    color: steelblue;
+    text-shadow: 0 -1px #229;
+}
+
+h3 {
+    font-family: 'Helvetica Neue', helvetica, sans-serif;
+    font-weight: 300;
+    color: steelblue;
+    text-shadow: 0 -1px #229;
+}
+
 table, table tr, table tr td {
     background-color: snow;
 }
@@ -111,3 +125,10 @@ span.loading {
     color: #555;
 }
 
+div.dash_header {
+    border-bottom: 2px solid #999;
+}
+
+div.hostname {
+    text-align: right;
+}

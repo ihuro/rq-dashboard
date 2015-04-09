@@ -2,10 +2,27 @@
 
 {% block content %}
 
+<div class="row dash_header">
+    <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2">
+        <div class="section">
+          <ul class="pager">
+              <li class="previous">
+              <a href="/"><span class="glyphicon glyphicon-arrow-left"></span> Home </a>
+              </li>
+          </ul>
+        </div>
+    </div>
+    <div class="col-xs-10 col-sm-10 col-md-10 col-lg-10 hostname">
+        <div class="section">
+          <h1>{{ sitename }}</h1>
+        </div>
+    </div>
+</div>
+
 <div class="row">
     <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
         <div class="section">
-            <h1>Queues</h1>
+            <h3>Queues</h3>
             <p class="fixed intro">This list below contains all the registered queues with the number of jobs currently in the queue.</p>
 
             <table id="queues" class="table table-bordered">
@@ -41,7 +58,7 @@
     <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
         <div class="section">
 
-        <h1>Workers</h1>
+        <h3>Workers</h3>
         <p class="fixed intro">This list below contains all the registered workers.</p>
 
         <table id="workers" class="table table-bordered">
@@ -62,7 +79,9 @@
         <script name="worker-row" type="text/template">
             <tr data-role="worker">
                 <td><span class="glyphicon glyphicon-<%= d.state %>"></span></td>
-                <td><%= d.name %></td>
+                <td>
+                  <%= d.name %><%= d.current_job %>
+                </td>
                 <td><%= d.queues.join(', ') %></td>
             </tr>
         </script>
@@ -80,7 +99,7 @@
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
         <div class="section">
 
-        <h1>Jobs on <strong{% if queue.name == 'failed' %} class="failed"{% endif %}>{{ queue.name }}</strong></h1>
+        <h3>Jobs on <strong{% if queue.name == 'failed' %} class="failed"{% endif %}>{{ queue.name }}</strong></h3>
         <p class="intro">
 
         <a href="{{ url_for('rq_dashboard.empty_queue', queue_name=queue.name) }}" id="empty-btn" class="btn btn-danger" data-toggle="tooltip" title="Remove all jobs from this queue (<b>destructive</b>)" data-html=true ><span class="glyphicon glyphicon-trash"></span> Empty</a>
@@ -155,19 +174,6 @@
         <script name="no-next-page-link" type="text/template">
            <li class="disabled" ><a href="#" >&raquo;</a></li>
         </script>
-        </div>
-    </div>
-</div>
-
-
-<div class="row">
-    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-        <div class="section">
-          <ul class="pager">
-              <li class="previous">
-              <a href="/"><span class="glyphicon glyphicon-arrow-left"></span> Home </a>
-              </li>
-          </ul>
         </div>
     </div>
 </div>

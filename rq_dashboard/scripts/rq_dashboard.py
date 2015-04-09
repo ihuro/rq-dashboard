@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import socket
 import sys
 import optparse
 from ..app import app
@@ -19,8 +20,8 @@ def main():
     parser.add_option('-P', '--redis-port', dest='redis_port', type='int',
                       metavar='PORT',
                       help='port of Redis server')
-    parser.add_option('-D', '--redis-database', dest='redis_database', type='int',
-                      metavar='DB',
+    parser.add_option('-D', '--redis-database', dest='redis_database',
+                      type='int', metavar='DB',
                       help='database of Redis server')
     parser.add_option('-u', '--redis_url', dest='redis_url_connection',
                       metavar='REDIS_URL',
@@ -28,20 +29,27 @@ def main():
     parser.add_option('--redis-password', dest='redis_password',
                       metavar='PASSWORD',
                       help='password for Redis server')
-    parser.add_option('--auth_user', dest='auth_user',
+    parser.add_option('--auth-user', dest='auth_user',
                       metavar='AUTH_USER',
                       help='username for auth')
-    parser.add_option('--auth_pass', dest='auth_pass',
+    parser.add_option('--auth-pass', dest='auth_pass',
                       metavar='AUTH_PASS',
                       help='password for auth')
     parser.add_option('--interval', dest='poll_interval', type='int',
                       metavar='POLL_INTERVAL',
                       help='refresh interval')
+    parser.add_option('--site-name', dest='site_name',
+                      metavar='SITENAME',
+                      help='sitename to show, otherwise hostname is displayed')
+    parser.add_option('--debug', dest='debug', action='store_true',
+                      metavar='DEBUG',
+                      help='run app in debug mode')
     (options, args) = parser.parse_args()
 
     # Populate app.config from options, defaulting to app.config's original
     # values, if specified, finally defaulting to something sensible.
-    app.config['BIND_ADDR'] = options.bind_addr or app.config.get('BIND_ADDR', '0.0.0.0') # noqa
+    app.config['BIND_ADDR'] = (options.bind_addr or
+                               app.config.get('BIND_ADDR', '0.0.0.0'))
     app.config['PORT'] = options.port or app.config.get('PORT', 9181)
 
     # Override app.config from options if specified. Otherwise leave untouched,
@@ -60,6 +68,14 @@ def main():
         app.config['AUTH_PASS'] = options.auth_pass
     if options.poll_interval:
         app.config['RQ_POLL_INTERVAL'] = options.poll_interval
+    if options.site_name:
+        app.config['SITENAME'] = options.site_name
+    else:
+        app.config['SITENAME'] = socket.gethostname()
+
+    app.config['DEBUG'] = False
+    if options.debug:
+        app.config['DEBUG'] = options.debug
 
     app.config['REDIS_URL'] = options.redis_url_connection or None
 
@@ -68,7 +84,8 @@ def main():
         sys.exit(2)
 
     print('RQ Dashboard, version %s' % VERSION)
-    app.run(host=app.config['BIND_ADDR'], port=app.config['PORT'])
+    app.run(host=app.config['BIND_ADDR'], port=app.config['PORT'],
+            debug=app.config['DEBUG'])
 
 if __name__ == '__main__':
     main()
