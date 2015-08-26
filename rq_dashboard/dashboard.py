@@ -180,6 +180,13 @@ def list_queues():
     return dict(queues=queues)
 
 
+@dashboard.route('/jobs/<queue_name>')
+@jsonify
+def queue_jobs_count(queue_name):
+    queue = Queue(queue_name)
+    return dict(jobs=queue.count)
+
+
 @dashboard.route('/jobs/<queue_name>/<page>.json')
 @jsonify
 def list_jobs(queue_name, page):
